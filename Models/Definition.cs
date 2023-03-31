@@ -1,11 +1,18 @@
-﻿namespace LogJson.AutoFarmer.Models
+﻿
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+
+namespace LogJson.AutoFarmer.Models
 {
 
     public class Definition
     {
+        [JsonPropertyName("className")]
         public string ClassName { get; set; }
+        [JsonPropertyName("contentDescription")]
         public string ContentDescription { get; set; }
         public string Text { get; set; }
+        [JsonPropertyName("hintText")]
         public string HintText { get; set; }
         public bool Checked { get; set; }
         public bool Clickable { get; set; }

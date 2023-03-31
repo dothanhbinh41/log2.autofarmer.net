@@ -1,20 +1,25 @@
 ﻿using AutoMapper;
 using LogJson.AutoFarmer.Controllers.Dtos;
+using LogJson.AutoFarmer.Models;
 using LogJson.AutoFarmer.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace LogJson.AutoFarmer.Controllers
 {
     [Route("v1")]
     public class ScreenLogController : ControllerBase
     {
+        private readonly IMongoRepository<ScreenDefinition> repository;
         private readonly IAutoFarmerDistributeCache autoFarmerDistributeCache;
         private readonly IMapper mapper;
         const string KeyLogs = "logs";
         public ScreenLogController(
+            IMongoRepository<ScreenDefinition> repository,
             IAutoFarmerDistributeCache autoFarmerDistributeCache,
             IMapper mapper)
         {
+            this.repository = repository;
             this.autoFarmerDistributeCache = autoFarmerDistributeCache;
             this.mapper = mapper;
         }
@@ -48,6 +53,23 @@ namespace LogJson.AutoFarmer.Controllers
                 .Take(request.Limit)
                 .ToList()
             };
+        }
+
+        [HttpPost("update-definition")]
+        public async Task<ScreenDefinition> UpdateDefinition([FromBody] ScreenDefinitionRequestDto request)
+        {
+            var entity = mapper.Map<ScreenDefinition>(request);
+            var filter = Builders<ScreenDefinition>.Filter.Eq(d => d.ScreenId, request.ScreenId);
+            var document = await repository.Collection.FindOneAndReplaceAsync(filter, entity, new FindOneAndReplaceOptions<ScreenDefinition> { IsUpsert = true, ReturnDocument = ReturnDocument.After });
+            return document;
+        }
+
+        [HttpPost("get-definition")]
+        public async Task<List<ScreenDefinition>> GetDefinition([FromBody] GetScreenDefinitionRequestDto request)
+        {
+            var filter = Builders<ScreenDefinition>.Filter.Eq(d => d.ScreenId, request.ScreenId);
+            var documents = await repository.Collection.Find(filter).ToListAsync();
+            return documents;
         }
     }
 }
