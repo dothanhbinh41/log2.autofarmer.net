@@ -11,7 +11,9 @@ namespace LogJson.AutoFarmer.Controllers
         private readonly IAutoFarmerDistributeCache autoFarmerDistributeCache;
         private readonly IMapper mapper;
         const string KeyLogs = "logs";
-        public ScreenLogController(IAutoFarmerDistributeCache autoFarmerDistributeCache, IMapper mapper)
+        public ScreenLogController(
+            IAutoFarmerDistributeCache autoFarmerDistributeCache,
+            IMapper mapper)
         {
             this.autoFarmerDistributeCache = autoFarmerDistributeCache;
             this.mapper = mapper;
@@ -23,7 +25,7 @@ namespace LogJson.AutoFarmer.Controllers
             var data = await autoFarmerDistributeCache.GetAsync<List<XmlLogDto>>(KeyLogs);
             data ??= new List<XmlLogDto>();
             var log = mapper.Map<XmlLogDto>(request);
-            log.CreationDate = DateTime.UtcNow;
+            log.TimeStamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             data.Add(log);
             await autoFarmerDistributeCache.SetAsync(KeyLogs, data, new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1) });
             return true;
@@ -40,8 +42,8 @@ namespace LogJson.AutoFarmer.Controllers
                 Count = data.Count,
                 Items = data
                 .Where(d => string.IsNullOrEmpty(request.AndroidId) || d.AndroidId == request.AndroidId)
-                .Where(d => string.IsNullOrEmpty(request.StartDate) || d.AndroidId == request.AndroidId)
-                .Where(d => string.IsNullOrEmpty(request.EndDate) || d.AndroidId == request.AndroidId)
+                .Where(d => request.StartDate.HasValue == false || d.TimeStamp >= request.StartDate)
+                .Where(d => request.EndDate.HasValue == false || d.TimeStamp <= request.EndDate)
                 .Skip((request.Page - 1) * request.Limit)
                 .Take(request.Limit)
                 .ToList()

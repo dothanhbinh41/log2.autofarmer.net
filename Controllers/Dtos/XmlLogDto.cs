@@ -12,6 +12,6 @@
         public string Xml { get; set; }
         public string ScreenShot { get; set; }
         public int AfVersion { get; set; }
-        public DateTime CreationDate { get; set; }
+        public long TimeStamp { get; set; }
     }
 }
