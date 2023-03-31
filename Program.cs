@@ -1,4 +1,5 @@
 using Autolike.Options;
+using LogJson.AutoFarmer;
 using LogJson.AutoFarmer.Repositories;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Win32;
@@ -48,10 +49,12 @@ void Register(IServiceCollection services, IConfiguration configuration)
 
     services.AddControllers()
         .AddJsonOptions(
-            options => {
+            options =>
+            {
                 options.JsonSerializerOptions.PropertyNamingPolicy =
                     SnakeCaseNamingPolicy.Instance;
             });
+    services.AddAutoMapper(typeof(LogProfile).Assembly);
 }
 
 public class SnakeCaseNamingPolicy : JsonNamingPolicy
